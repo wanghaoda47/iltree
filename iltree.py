@@ -1,5 +1,8 @@
-""" Illustris Simulation: Public Data Release.
-sublink.py: File I/O related to the Sublink merger tree files. """
+"""
+Author: Haoda Wang
+Date: 9th June 2025
+Modified version based on illustris_python.sublink, suitable for illustris public data.
+"""
 
 import numpy as np
 import h5py
