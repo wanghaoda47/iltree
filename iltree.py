@@ -582,3 +582,63 @@ def MergersType(tree, index=0, minMassRatio=1e-10, alongFullTree=False, fields=N
         for field in fields:
             mergers[field] = tree[field][mergerindex]
         return mergers
+
+
+def cut_tree(tree, index, fields=None, Mergers=None):
+    """ Cut a sub-tree from the full tree, starting from a given index."""
+    reqfields = ['SubhaloID', 'NextProgenitorID', 'LastProgenitorID',
+                 'FirstProgenitorID']
+    
+    if not set(reqfields).issubset(tree.keys()):
+        raise Exception('Error: Input tree needs to have loaded fields: '+', '.join(reqfields))
+    
+    if fields is None:
+        fields = list(tree.keys())
+    
+    # Get the range of indices for the sub-tree
+    start_index = tree['SubhaloID'][index]
+    # LastProgenitorID is the end of the complete subtree.  In contrast,
+    # MainLeafProgenitorID only marks the end of the main progenitor branch.
+    end_index = tree['LastProgenitorID'][index]
+
+    end_idx = index + (end_index - start_index) + 1
+    
+    tree_cut = {field: tree[field][index:end_idx] for field in fields}
+
+    if Mergers is not None:
+        # Filter Mergers to only include those within the cut tree
+        if isinstance(Mergers, dict):
+            if 'index' not in Mergers:
+                raise ValueError("Mergers dictionary must contain an 'index' field")
+            merger_indices = np.asarray(Mergers['index'])
+        elif isinstance(Mergers, list):
+            merger_indices = np.asarray(Mergers)
+        else:
+            raise TypeError('Mergers must be a list or a dictionary')
+
+        # An empty list becomes a one-dimensional array, so handle it before
+        # indexing the third column.
+        if merger_indices.size == 0:
+            valid_mergers = np.zeros(0, dtype=bool)
+        else:
+            # merger_indices = np.atleast_2d(merger_indices)
+            if merger_indices.shape[1] < 3:
+                raise ValueError('Each merger entry must contain at least 3 indices')
+            valid_mergers = ((merger_indices[:, 2] >= index) &
+                             (merger_indices[:, 2] < end_idx))
+
+        if isinstance(Mergers, list):
+            mergers_cut = merger_indices[valid_mergers] - index
+            mergers_cut = mergers_cut.tolist()  # Convert back to list if needed
+            return tree_cut, mergers_cut
+        if isinstance(Mergers, dict):
+            mergers_cut = {
+                key: np.asarray(value)[valid_mergers].tolist()
+                for key, value in Mergers.items()
+            }
+            # Keep the dictionary format, while shifting the tree indices in
+            # the same way as for a list of merger entries.
+            mergers_cut['index'] = (merger_indices[valid_mergers] - index).tolist()
+            return tree_cut, mergers_cut
+
+    return tree_cut

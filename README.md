@@ -10,3 +10,4 @@ Changes:
   4. New function 'MergerIDs' is provided to find all the index of mergers in a tree. The result appears as such a list: [[a0,b0,c0],[a1,b1,c1],...]. Each set of a,b,c refer to the index of the First Progenitor, the Secondary Progenitor, the Descendent in the tree list. When a Merger involves more than two halos, a few sets of a,b,c is provided, where a and c do not change and b changes to the next progenitor.
   5. Function 'Mergers' returns more than 'MergerIDs'. Fields can be selected by input.
   6. Functions 'MergerIDsType' and 'MergersType' select mergers by mass ratio of a certain type of particles rather than the total mass of subhalos.
+  7. The function cut_tree can return a sub-tree of a single tree. The subtree can be determined by specifying the index of the root point in the input tree.
